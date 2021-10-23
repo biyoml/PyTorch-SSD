@@ -1,0 +1,28 @@
+# Data
+train_json: datasets/voc/train.json
+val_json: datasets/voc/val.json
+class_names: [aeroplane, bicycle, bird, boat, bottle, bus, car, cat, chair, cow, diningtable, dog,
+              horse, motorbike, person, pottedplant, sheep, sofa, train, tvmonitor]
+recall_steps: 11
+
+# Model
+model: SSD
+backbone:
+  name: VGG16
+  num_stages: 7
+input_size: 512
+anchor_scales: [0.07, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9]
+anchor_aspect_ratios: [[1, 2], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2], [1, 2]]
+
+# Training
+batch_size: 32
+epochs: 230
+optim:
+  name: SGD
+  lr: 0.001
+  momentum: 0.9
+  weight_decay: 0.0005
+scheduler:
+  name: MultiStepLR
+  milestones: [155, 195]
+  gamma: 0.1
