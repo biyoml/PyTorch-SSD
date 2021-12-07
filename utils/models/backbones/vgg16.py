@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from torch import nn
 from torchvision.models import vgg16
 from torchvision.models.feature_extraction import create_feature_extractor
+from utils.models.ops import xavier_init
 
 
 class _ExtraBlock(nn.Sequential):
@@ -58,6 +59,8 @@ class VGG16(nn.Module):
         )
         for i in range(num_stages - 4):
             self.extra_layers.append(_ExtraBlock(256, 256))
+
+        self.extra_layers.apply(xavier_init)
 
     def forward(self, images):
         ftrs = self.trunk(images)

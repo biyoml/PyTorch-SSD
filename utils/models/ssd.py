@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from numpy import mgrid
 from functools import partial
 from torch import nn
-from utils.models.ops import get_output_shapes
+from utils.models.ops import get_output_shapes, xavier_init
 from utils.models.layers import ConvBNReLU
 from utils.constants import BACKGROUND_INDEX
 from utils.boxes import cxcywh2xyxy, xyxy2cxcywh, calculate_ious
@@ -25,6 +25,8 @@ class _Heads(nn.Module):
         for cin, n in zip(layer_channels, num_anchor_shapes):
             self.classifincation_heads.append(module(cin, (num_classes + 1) * n))
             self.regression_heads.append(module(cin, 4 * n))
+
+        self.apply(xavier_init)
 
     def forward(self, features):
         """
