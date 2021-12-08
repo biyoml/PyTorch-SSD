@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -35,8 +36,13 @@ class L2_Normalize(nn.Module):
 class VGG16(nn.Module):
     def __init__(self, num_stages):
         super().__init__()
-        trunk = vgg16(pretrained=True)
-        trunk.features[16] = nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)   # pool3
+        if not os.path.exists('vgg16_features-amdegroot-88682ab5.pth'):
+            import wget
+            wget.download('https://download.pytorch.org/models/vgg16_features-amdegroot-88682ab5.pth')   # noqa: E501
+        trunk = vgg16(pretrained=False)
+        trunk.load_state_dict(torch.load('vgg16_features-amdegroot-88682ab5.pth'))
+
+        trunk.features[16].ceil_mode = True   # pool3
         trunk.features[30] = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)   # pool5
         self.trunk = create_feature_extractor(
             trunk,

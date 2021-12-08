@@ -4,7 +4,6 @@ import os
 import json
 import tempfile
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
-from utils.constants import IMAGE_MEAN, IMAGE_STDDEV
 from PIL import Image
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -40,7 +39,7 @@ def main():
         [
             Resize((cfg.input_size,) * 2),
             ToTensor(),
-            Normalize([x / 255 for x in IMAGE_MEAN], [x / 255 for x in IMAGE_STDDEV]),
+            Normalize([x / 255 for x in cfg.image_mean], [x / 255 for x in cfg.image_stddev]),
         ]
     )
 

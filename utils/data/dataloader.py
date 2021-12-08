@@ -6,17 +6,17 @@ from utils.constants import BACKGROUND_INDEX
 from torch.utils.data import Dataset, DataLoader
 
 
-def _get_transform(image_size, augment):
+def _get_transform(image_size, augment, image_mean, image_stddev):
     if augment:
         return T.Compose(
             [
                 T.RandomDistortColor(),
-                T.RandomPad(),
+                T.RandomPad(image_mean),
                 T.RandomCrop(),
                 T.RandomHorizontalFlip(),
                 T.Resize(image_size),
                 T.PILToTensor(),
-                T.Normalize(),
+                T.Normalize(image_mean, image_stddev),
             ]
         )
     else:
@@ -24,7 +24,7 @@ def _get_transform(image_size, augment):
             [
                 T.Resize(image_size),
                 T.PILToTensor(),
-                T.Normalize(),
+                T.Normalize(image_mean, image_stddev),
             ]
         )
 
@@ -66,11 +66,12 @@ class _ObjectDetectionDataset(Dataset):
         return images, boxes, classes, difficulties
 
 
-def create_dataloader(json_file, batch_size, image_size, augment=False,
-                      shuffle=False, seed=None, num_workers=0):
+def create_dataloader(json_file, batch_size, image_size, image_mean,
+                      image_stddev, augment=False, shuffle=False, seed=None,
+                      num_workers=0):
     dataset = _ObjectDetectionDataset(
         json_file,
-        _get_transform(image_size, augment)
+        _get_transform(image_size, augment, image_mean, image_stddev)
     )
 
     if seed is not None:

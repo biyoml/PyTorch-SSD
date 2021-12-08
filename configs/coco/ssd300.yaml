@@ -11,6 +11,8 @@ class_names: [person, bicycle, car, motorcycle, airplane, bus, train, truck, boa
               cell_phone, microwave, oven, toaster, sink, refrigerator, book, clock, vase, scissors,
               teddy_bear, hair_drier, toothbrush]
 recall_steps: 101
+image_mean: [123., 117., 104.]
+image_stddev: [1., 1, 1.]
 
 # Model
 model: SSD

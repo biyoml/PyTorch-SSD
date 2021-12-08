@@ -20,12 +20,16 @@ def main():
     dataloader_0 = create_dataloader(cfg[args.split + '_json'],
                                      batch_size=cfg.batch_size,
                                      image_size=cfg.input_size,
+                                     image_mean=cfg.image_mean,
+                                     image_stddev=cfg.image_stddev,
                                      augment=False,
                                      shuffle=True,
                                      seed=seed)
     dataloader_1 = create_dataloader(cfg[args.split + '_json'],
                                      batch_size=cfg.batch_size,
                                      image_size=cfg.input_size,
+                                     image_mean=cfg.image_mean,
+                                     image_stddev=cfg.image_stddev,
                                      augment=True,
                                      shuffle=True,
                                      seed=seed)
@@ -36,14 +40,14 @@ def main():
         plt.figure(figsize=(15, 7))
 
         images, boxes, classes, _ = next(dataiter_0)
-        image = unnormalize(images[0])
+        image = unnormalize(images[0], cfg.image_mean, cfg.image_stddev)
         image = draw_boxes(image, cfg.class_names, boxes[0], classes[0])
         plt.subplot(1, 2, 1)
         plt.title("w/o augmentation")
         plt.imshow(image.permute([1, 2, 0]))
 
         images, boxes, classes, _ = next(dataiter_1)
-        image = unnormalize(images[0])
+        image = unnormalize(images[0], cfg.image_mean, cfg.image_stddev)
         image = draw_boxes(image, cfg.class_names, boxes[0], classes[0])
         plt.subplot(1, 2, 2)
         plt.title("w/ augmentation")

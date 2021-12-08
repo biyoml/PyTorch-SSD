@@ -1,6 +1,7 @@
 import os
 import argparse
 import torch
+import warnings
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.cuda.amp import autocast, GradScaler
@@ -119,12 +120,16 @@ def main():
     train_loader = create_dataloader(cfg.train_json,
                                      batch_size=cfg.batch_size,
                                      image_size=cfg.input_size,
+                                     image_mean=cfg.image_mean,
+                                     image_stddev=cfg.image_stddev,
                                      augment=True,
                                      shuffle=True,
                                      num_workers=args.workers)
     val_loader = create_dataloader(cfg.val_json,
                                    batch_size=cfg.batch_size,
                                    image_size=cfg.input_size,
+                                   image_mean=cfg.image_mean,
+                                   image_stddev=cfg.image_stddev,
                                    num_workers=args.workers)
 
     # Criteria
@@ -160,13 +165,19 @@ def main():
         print("-" * 10)
         print("Epoch: %d/%d" % (epoch, cfg.epochs))
 
-        lr = get_lr(optim)
-        writers['train'].add_scalar('Learning rate', lr, epoch)
-        print("Learning rate:", lr)
-
         # Train
         model.train()
         metrics['loss'].reset()
+        if epoch == 1:
+            warnings.filterwarnings(
+                'ignore',
+                ".*call of `lr_scheduler.step\(\)` before `optimizer.step\(\)`.*"  # noqa: W605
+            )
+            warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+                optim,
+                start_factor=0.001,
+                total_iters=min(1000, len(train_loader))
+            )
         pbar = tqdm(train_loader,
                     bar_format="{l_bar}{bar:20}{r_bar}",
                     desc="Training")
@@ -180,9 +191,15 @@ def main():
                        scaler=scaler,
                        metrics=metrics,
                        device=device)
-            pbar.set_postfix(loss='%.5f' % metrics['loss'].result)
+            loss = metrics['loss'].result
+            lr = get_lr(optim)
+            pbar.set_postfix(loss='%.5f' % metrics['loss'].result, lr=lr)
+
+            if epoch == 1:
+                warmup_scheduler.step()
+        writers['train'].add_scalar('Loss', loss, epoch)
+        writers['train'].add_scalar('Learning rate', get_lr(optim), epoch)
         scheduler.step()
-        writers['train'].add_scalar('Loss', metrics['loss'].result, epoch)
 
         # Validation
         if epoch % args.val_period == 0:

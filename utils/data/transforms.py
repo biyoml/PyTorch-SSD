@@ -3,7 +3,6 @@ import random
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from utils.boxes import xyxy2cxcywh, calculate_ious
-from utils.constants import IMAGE_MEAN, IMAGE_STDDEV
 
 
 class Compose(object):
@@ -29,7 +28,8 @@ class RandomDistortColor(object):
 
 
 class RandomPad(object):
-    def __init__(self, max_scale=4.):
+    def __init__(self, image_mean, max_scale=4.):
+        self.image_mean = tuple([round(x) for x in image_mean])
         self.max_scale = max_scale
 
     def __call__(self, image, boxes, *args):
@@ -44,7 +44,7 @@ class RandomPad(object):
             pad_bottom = dy - pad_top
             image = TF.pad(image,
                            padding=[pad_left, pad_top, pad_right, pad_bottom],
-                           fill=IMAGE_MEAN)
+                           fill=self.image_mean)
 
             offset = torch.FloatTensor([pad_left, pad_top]).repeat([2])
             boxes = boxes + offset
@@ -159,7 +159,8 @@ class Resize(object):
 
 
 class LetterBox(object):
-    def __init__(self, image_size):
+    def __init__(self, image_mean, image_size):
+        self.image_mean = tuple([round(x) for x in image_mean])
         self.size = image_size
 
     def __call__(self, image, boxes, *args):
@@ -173,7 +174,7 @@ class LetterBox(object):
         right, bottom = dx - left, dy - top
         image = TF.pad(image,
                        padding=[left, top, right, bottom],
-                       fill=IMAGE_MEAN)
+                       fill=self.image_mean)
         boxes = boxes * torch.FloatTensor([w / w0, h / h0]).repeat([2])
         boxes = boxes + torch.FloatTensor([left, top]).repeat([2])
         return (image, boxes, *args)
@@ -186,10 +187,10 @@ class PILToTensor(object):
 
 
 class Normalize(object):
-    def __init__(self):
-        self.mean = torch.FloatTensor(IMAGE_MEAN).reshape([-1, 1, 1])
-        self.stddev = torch.FloatTensor(IMAGE_STDDEV).reshape([-1, 1, 1])
+    def __init__(self, mean, stddev):
+        self.mean = torch.FloatTensor(mean).reshape([-1, 1, 1])
+        self.stddev = torch.FloatTensor(stddev).reshape([-1, 1, 1])
 
     def __call__(self, image, *args):
-        image = (image - self.mean) / self.stddev
+        image = (image.float() - self.mean) / self.stddev
         return (image, *args)

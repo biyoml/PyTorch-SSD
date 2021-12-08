@@ -4,6 +4,8 @@ val_json: datasets/voc/val.json
 class_names: [aeroplane, bicycle, bird, boat, bottle, bus, car, cat, chair, cow, diningtable, dog,
               horse, motorbike, person, pottedplant, sheep, sofa, train, tvmonitor]
 recall_steps: 11
+image_mean: [123., 117., 104.]
+image_stddev: [1., 1, 1.]
 
 # Model
 model: SSD

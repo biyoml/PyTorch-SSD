@@ -3,7 +3,7 @@ import torchvision
 import utils.models
 import utils.models.backbones
 from yacs.config import CfgNode
-from utils.constants import IMAGE_MEAN, IMAGE_STDDEV, HEX_COLORS
+from utils.constants import HEX_COLORS
 from torchvision.utils import draw_bounding_boxes
 
 
@@ -65,9 +65,9 @@ def nms(boxes, scores, classes, score_thres=0.01, iou_thres=0.45, max_dets=200):
     return det_boxes, det_scores, det_classes
 
 
-def unnormalize(images):
-    mean = torch.FloatTensor(IMAGE_MEAN).reshape([3, 1, 1])
-    stddev = torch.FloatTensor(IMAGE_STDDEV).reshape([3, 1, 1])
+def unnormalize(images, mean, stddev):
+    mean = torch.FloatTensor(mean).reshape([3, 1, 1])
+    stddev = torch.FloatTensor(stddev).reshape([3, 1, 1])
     images = torch.clip(images * stddev + mean, 0, 255)
     images = images.byte()
     return images
