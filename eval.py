@@ -34,6 +34,8 @@ def main():
     dataloader = create_dataloader(args.dataset,
                                    batch_size=cfg.batch_size,
                                    image_size=cfg.input_size,
+                                   image_mean=cfg.image_mean,
+                                   image_stddev=cfg.image_stddev,
                                    num_workers=args.workers)
 
     metric = AveragePrecision(len(cfg.class_names), cfg.recall_steps)
